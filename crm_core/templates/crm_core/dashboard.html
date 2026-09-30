@@ -1,0 +1,458 @@
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="data:,">
+    <title>AI CRM Dashboard - Hệ Thống Quản Trị Khách Hàng</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .modal-backdrop { backdrop-filter: blur(8px); }
+        .analysis-card { transition: transform 0.15s ease, box-shadow 0.15s ease; }
+        .analysis-card:hover { transform: translateY(-1px); }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen">
+
+    <!-- Top Navigation -->
+    <header class="bg-slate-800/80 backdrop-blur border-b border-slate-700/60 sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold text-white tracking-tight">AI CRM Intelligence</h1>
+                    <p class="text-xs text-slate-400">Hệ Thống Phân Tích Khách Hàng Bằng AI</p>
+                </div>
+            </div>
+            <a href="/admin/" target="_blank" class="px-3.5 py-1.5 rounded-lg bg-slate-700/70 hover:bg-slate-700 text-xs font-medium text-slate-200 border border-slate-600/50 transition">
+                Wagtail Admin &rarr;
+            </a>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+        <!-- Toast Notification -->
+        <div id="toastNotification" class="hidden fixed top-20 right-6 z-50 max-w-md p-4 rounded-xl shadow-2xl border transition-all duration-300">
+            <div class="flex items-start space-x-3">
+                <div id="toastIcon" class="flex-shrink-0 mt-0.5"></div>
+                <div class="flex-1">
+                    <h4 id="toastTitle" class="text-sm font-semibold"></h4>
+                    <p id="toastMessage" class="text-xs mt-0.5 text-slate-300"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4 KPI Statistics Cards -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-5 shadow-lg relative overflow-hidden group hover:border-slate-600 transition">
+                <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-blue-500/10 rounded-full blur-xl group-hover:bg-blue-500/20 transition"></div>
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Tổng khách hàng</span>
+                    <div class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                    </div>
+                </div>
+                <div class="mt-4"><div class="text-3xl font-extrabold text-white">{{ total_customers }}</div><p class="text-xs text-slate-400 mt-1">Dữ liệu trên toàn hệ thống</p></div>
+            </div>
+            <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-5 shadow-lg relative overflow-hidden group hover:border-slate-600 transition">
+                <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-indigo-500/10 rounded-full blur-xl group-hover:bg-indigo-500/20 transition"></div>
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Điểm AI Trung Bình</span>
+                    <div class="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+                    </div>
+                </div>
+                <div class="mt-4"><div class="text-3xl font-extrabold text-indigo-400">{{ avg_lead_score }} <span class="text-sm font-normal text-slate-400">/ 100</span></div><p class="text-xs text-slate-400 mt-1">Dựa trên phân tích tương tác AI</p></div>
+            </div>
+            <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-5 shadow-lg relative overflow-hidden group hover:border-slate-600 transition">
+                <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-rose-500/10 rounded-full blur-xl group-hover:bg-rose-500/20 transition"></div>
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Nguy cơ rời bỏ cao</span>
+                    <div class="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-400 flex items-center justify-center">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                    </div>
+                </div>
+                <div class="mt-4"><div class="text-3xl font-extrabold text-rose-400">{{ high_churn_count }}</div><p class="text-xs text-slate-400 mt-1">Khách hàng cần chăm sóc khẩn cấp</p></div>
+            </div>
+            <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-5 shadow-lg relative overflow-hidden group hover:border-slate-600 transition">
+                <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-emerald-500/10 rounded-full blur-xl group-hover:bg-emerald-500/20 transition"></div>
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Doanh số dự kiến</span>
+                    <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    </div>
+                </div>
+                <div class="mt-4"><div class="text-3xl font-extrabold text-emerald-400">{{ forecast_revenue|floatformat:0 }} <span class="text-sm font-normal text-slate-400">VNĐ</span></div><p class="text-xs text-slate-400 mt-1">Tổng Deals (Đàm phán + Đã thắng)</p></div>
+            </div>
+        </section>
+
+        <!-- Customer Table (Compact Summary) -->
+        <section class="bg-slate-800/60 border border-slate-700/60 rounded-2xl shadow-xl overflow-hidden">
+            <div class="p-6 border-b border-slate-700/60 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <h2 class="text-lg font-bold text-white">Danh Sách Khách Hàng</h2>
+                    <p class="text-xs text-slate-400 mt-1">Nhấn vào từng dòng để xem phân tích AI chi tiết theo 4 tiêu chí chuyên sâu</p>
+                </div>
+                <div class="text-xs text-slate-400 bg-slate-900/60 px-3 py-1.5 rounded-lg border border-slate-700/50">
+                    Tổng cộng: <span class="font-bold text-slate-200">{{ customers|length }}</span> khách hàng
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm text-slate-300">
+                    <thead class="bg-slate-900/50 text-xs uppercase font-semibold text-slate-400 border-b border-slate-700/60">
+                        <tr>
+                            <th class="px-5 py-4">Tên & Công Ty</th>
+                            <th class="px-5 py-4">Trạng Thái</th>
+                            <th class="px-5 py-4 text-center">Điểm AI</th>
+                            <th class="px-5 py-4 text-center">Sentiment</th>
+                            <th class="px-5 py-4 text-center">Churn Risk</th>
+                            <th class="px-5 py-4">Tóm Tắt & Kết Luận</th>
+                            <th class="px-5 py-4 text-right">Hành Động</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-700/40">
+                        {% for customer in customers %}
+                        <tr id="customer-row-{{ customer.id }}"
+                            onclick="openDetailModal({{ customer.id }})"
+                            class="hover:bg-slate-700/40 transition cursor-pointer group">
+                            <!-- Tên -->
+                            <td class="px-5 py-4">
+                                <div class="font-semibold text-white group-hover:text-indigo-300 transition">{{ customer.name }}</div>
+                                <div class="text-xs text-slate-400">{{ customer.company|default:"—" }}</div>
+                            </td>
+                            <!-- Trạng thái -->
+                            <td class="px-5 py-4 whitespace-nowrap">
+                                <span class="px-2.5 py-1 text-xs font-medium rounded-full
+                                    {% if customer.status == 'Customer' %}bg-emerald-500/10 text-emerald-400 border border-emerald-500/20
+                                    {% elif customer.status == 'Qualified' %}bg-blue-500/10 text-blue-400 border border-blue-500/20
+                                    {% elif customer.status == 'Lead' %}bg-amber-500/10 text-amber-400 border border-amber-500/20
+                                    {% else %}bg-slate-500/10 text-slate-400 border border-slate-500/20{% endif %}">
+                                    {{ customer.get_status_display }}
+                                </span>
+                            </td>
+                            <!-- Điểm AI -->
+                            <td class="px-5 py-4 text-center">
+                                <span id="score-{{ customer.id }}" class="font-extrabold text-sm
+                                    {% if customer.ai_lead_score %}{% if customer.ai_lead_score >= 75 %}text-emerald-400{% elif customer.ai_lead_score >= 40 %}text-amber-400{% else %}text-rose-400{% endif %}{% else %}text-slate-500{% endif %}">
+                                    {{ customer.ai_lead_score|default:"—" }}
+                                </span>
+                            </td>
+                            <!-- Sentiment Badge -->
+                            <td class="px-5 py-4 text-center">
+                                <span id="sentiment-badge-{{ customer.id }}">
+                                    {% if customer.ai_sentiment|lower == 'positive' %}<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">● Positive</span>
+                                    {% elif customer.ai_sentiment|lower == 'negative' %}<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/30">● Negative</span>
+                                    {% elif customer.ai_sentiment|lower == 'neutral' %}<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-500/20 text-slate-300 border border-slate-600/30">● Neutral</span>
+                                    {% else %}<span class="text-xs text-slate-500">—</span>{% endif %}
+                                </span>
+                            </td>
+                            <!-- Churn Risk Badge -->
+                            <td class="px-5 py-4 text-center">
+                                <span id="churn-badge-{{ customer.id }}">
+                                    {% if customer.ai_churn_risk|lower == 'high' %}<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/30">High</span>
+                                    {% elif customer.ai_churn_risk|lower == 'medium' %}<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/30">Medium</span>
+                                    {% elif customer.ai_churn_risk|lower == 'low' %}<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">Low</span>
+                                    {% else %}<span class="text-xs text-slate-500">—</span>{% endif %}
+                                </span>
+                            </td>
+                            <!-- Tóm tắt + Kết luận -->
+                            <td class="px-5 py-4 max-w-xs">
+                                <p id="summary-{{ customer.id }}" class="text-xs text-slate-300 line-clamp-2">
+                                    {{ customer.ai_summary|default:"Chưa có phân tích. Bấm 'Phân tích AI' để tạo phân tích chi tiết." }}
+                                </p>
+                                {% if customer.ai_recommended_action %}
+                                <p id="action-{{ customer.id }}" class="text-[11px] text-indigo-400 mt-1 font-medium truncate">👉 {{ customer.ai_recommended_action }}</p>
+                                {% else %}
+                                <p id="action-{{ customer.id }}" class="text-[11px] text-indigo-400 mt-1 font-medium hidden"></p>
+                                {% endif %}
+                            </td>
+                            <!-- Nút Phân tích AI -->
+                            <td class="px-5 py-4 text-right" onclick="event.stopPropagation()">
+                                <button
+                                    onclick="triggerAiAnalysis({{ customer.id }})"
+                                    id="btn-analyze-{{ customer.id }}"
+                                    class="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg shadow-sm shadow-indigo-500/30 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                                    <span>Phân tích AI</span>
+                                </button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="px-6 py-12 text-center text-slate-400">
+                                <p class="text-sm">Chưa có khách hàng nào trong hệ thống.</p>
+                                <a href="/admin/snippets/crm_core/customer/new/" target="_blank" class="text-xs text-indigo-400 hover:underline mt-1 block">+ Thêm khách hàng mới</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <!-- ===== MODAL Chi Tiết Phân Tích AI (4 Tiêu Chí Chuyên Sâu) ===== -->
+    <div id="aiDetailModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop bg-slate-900/70">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
+            <!-- Modal Header -->
+            <div class="px-6 py-4 border-b border-slate-700 flex items-center justify-between flex-shrink-0">
+                <div class="flex items-center space-x-3">
+                    <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                    </div>
+                    <div>
+                        <h3 id="modalCustomerName" class="text-base font-bold text-white">Báo cáo Phân Tích AI</h3>
+                        <p id="modalCustomerCompany" class="text-xs text-slate-400"></p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <div id="modalScoreBadge" class="px-3 py-1 rounded-full text-sm font-bold border"></div>
+                    <button onclick="closeDetailModal()" class="w-8 h-8 rounded-lg bg-slate-700 hover:bg-slate-600 flex items-center justify-center transition text-slate-400 hover:text-white">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Modal Body (Scrollable) -->
+            <div class="overflow-y-auto flex-1 p-6 space-y-4">
+
+                <!-- Check nếu chưa có phân tích -->
+                <div id="modalNoDataWarning" class="hidden bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 text-sm text-amber-400">
+                    ⚠️ Khách hàng này chưa được phân tích AI. Hãy bấm nút <strong>"Phân tích AI"</strong> trong bảng để tạo báo cáo chi tiết.
+                </div>
+
+                <!-- Card 1: Demographics -->
+                <div class="analysis-card bg-slate-900/60 border border-slate-700/50 rounded-xl p-5">
+                    <div class="flex items-center space-x-2 mb-3">
+                        <div class="w-7 h-7 rounded-lg bg-blue-500/15 text-blue-400 flex items-center justify-center text-xs font-bold">1</div>
+                        <h4 class="text-sm font-semibold text-blue-400">Thuộc Tính Định Danh</h4>
+                        <span class="text-xs text-slate-500 font-normal">(Demographics / Firmographics)</span>
+                    </div>
+                    <p id="modalDemographics" class="text-sm text-slate-300 leading-relaxed whitespace-pre-wrap">—</p>
+                </div>
+
+                <!-- Card 2: RFM -->
+                <div class="analysis-card bg-slate-900/60 border border-slate-700/50 rounded-xl p-5">
+                    <div class="flex items-center space-x-2 mb-3">
+                        <div class="w-7 h-7 rounded-lg bg-purple-500/15 text-purple-400 flex items-center justify-center text-xs font-bold">2</div>
+                        <h4 class="text-sm font-semibold text-purple-400">Hành Vi Giao Dịch</h4>
+                        <span class="text-xs text-slate-500 font-normal">(Mô hình RFM: Recency · Frequency · Monetary)</span>
+                    </div>
+                    <p id="modalRfm" class="text-sm text-slate-300 leading-relaxed whitespace-pre-wrap">—</p>
+                </div>
+
+                <!-- Card 3: Engagement & Sentiment -->
+                <div class="analysis-card bg-slate-900/60 border border-slate-700/50 rounded-xl p-5">
+                    <div class="flex items-center space-x-2 mb-3">
+                        <div class="w-7 h-7 rounded-lg bg-emerald-500/15 text-emerald-400 flex items-center justify-center text-xs font-bold">3</div>
+                        <h4 class="text-sm font-semibold text-emerald-400">Mức Độ Tương Tác & Sắc Thái</h4>
+                        <span class="text-xs text-slate-500 font-normal">(Engagement & Sentiment)</span>
+                    </div>
+                    <p id="modalEngagement" class="text-sm text-slate-300 leading-relaxed whitespace-pre-wrap">—</p>
+                </div>
+
+                <!-- Card 4: Predictive Metrics -->
+                <div class="analysis-card bg-slate-900/60 border border-slate-700/50 rounded-xl p-5">
+                    <div class="flex items-center space-x-2 mb-3">
+                        <div class="w-7 h-7 rounded-lg bg-amber-500/15 text-amber-400 flex items-center justify-center text-xs font-bold">4</div>
+                        <h4 class="text-sm font-semibold text-amber-400">Chỉ Số Dự Đoán & Vòng Đời</h4>
+                        <span class="text-xs text-slate-500 font-normal">(Predictive Metrics & CLV)</span>
+                    </div>
+                    <p id="modalPredictive" class="text-sm text-slate-300 leading-relaxed whitespace-pre-wrap">—</p>
+                </div>
+
+                <!-- Kết luận & Hành động -->
+                <div class="bg-indigo-500/10 border border-indigo-500/30 rounded-xl p-5">
+                    <div class="flex items-center space-x-2 mb-3">
+                        <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        <h4 class="text-sm font-semibold text-indigo-400">Kết Luận & Hành Động Ưu Tiên</h4>
+                    </div>
+                    <p id="modalAction" class="text-sm text-white font-medium leading-relaxed">—</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== Store data from Django template =====
+        const customersData = {
+            {% for c in customers %}
+            "{{ c.id }}": {
+                name: "{{ c.name|escapejs }}",
+                company: "{{ c.company|default:'—'|escapejs }}",
+                email: "{{ c.email|escapejs }}",
+                status: "{{ c.status|escapejs }}",
+                ai_lead_score: {% if c.ai_lead_score %}{{ c.ai_lead_score }}{% else %}null{% endif %},
+                ai_sentiment: "{{ c.ai_sentiment|escapejs }}",
+                ai_churn_risk: "{{ c.ai_churn_risk|escapejs }}",
+                ai_summary: "{{ c.ai_summary|escapejs }}",
+                ai_recommended_action: "{{ c.ai_recommended_action|escapejs }}",
+                ai_demographics: "{{ c.ai_demographics|escapejs }}",
+                ai_rfm_analysis: "{{ c.ai_rfm_analysis|escapejs }}",
+                ai_engagement: "{{ c.ai_engagement|escapejs }}",
+                ai_predictive: "{{ c.ai_predictive|escapejs }}"
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        };
+
+        // ===== Modal Functions =====
+        function openDetailModal(customerId) {
+            const data = customersData[customerId];
+            if (!data) return;
+
+            document.getElementById('modalCustomerName').innerText = data.name;
+            document.getElementById('modalCustomerCompany').innerText = data.company + (data.email ? ' · ' + data.email : '');
+
+            // Score badge
+            const scoreBadge = document.getElementById('modalScoreBadge');
+            if (data.ai_lead_score) {
+                const score = data.ai_lead_score;
+                const cls = score >= 75 ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' :
+                             score >= 40 ? 'bg-amber-500/15 text-amber-400 border-amber-500/30' :
+                                           'bg-rose-500/15 text-rose-400 border-rose-500/30';
+                scoreBadge.className = `px-3 py-1 rounded-full text-sm font-bold border ${cls}`;
+                scoreBadge.innerText = `Score: ${score}/100`;
+            } else {
+                scoreBadge.className = 'px-3 py-1 rounded-full text-sm font-bold border bg-slate-700/50 text-slate-400 border-slate-600';
+                scoreBadge.innerText = 'Chưa phân tích';
+            }
+
+            const hasData = data.ai_demographics || data.ai_rfm_analysis || data.ai_engagement || data.ai_predictive;
+            document.getElementById('modalNoDataWarning').classList.toggle('hidden', hasData);
+
+            document.getElementById('modalDemographics').innerText = data.ai_demographics || '—';
+            document.getElementById('modalRfm').innerText = data.ai_rfm_analysis || '—';
+            document.getElementById('modalEngagement').innerText = data.ai_engagement || '—';
+            document.getElementById('modalPredictive').innerText = data.ai_predictive || '—';
+            document.getElementById('modalAction').innerText = data.ai_recommended_action || '—';
+
+            document.getElementById('aiDetailModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeDetailModal() {
+            document.getElementById('aiDetailModal').classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        // Close modal by clicking backdrop
+        document.getElementById('aiDetailModal').addEventListener('click', function(e) {
+            if (e.target === this) closeDetailModal();
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeDetailModal();
+        });
+
+        // ===== Toast =====
+        function showToast(title, message, isSuccess = true) {
+            const toast = document.getElementById('toastNotification');
+            document.getElementById('toastTitle').innerText = title;
+            document.getElementById('toastMessage').innerText = message;
+
+            if (isSuccess) {
+                toast.className = 'fixed top-20 right-6 z-50 max-w-md p-4 rounded-xl shadow-2xl border bg-slate-800 border-emerald-500/50 text-emerald-300';
+                document.getElementById('toastIcon').innerHTML = `<svg class="w-5 h-5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>`;
+            } else {
+                toast.className = 'fixed top-20 right-6 z-50 max-w-md p-4 rounded-xl shadow-2xl border bg-slate-800 border-rose-500/50 text-rose-300';
+                document.getElementById('toastIcon').innerHTML = `<svg class="w-5 h-5 text-rose-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>`;
+            }
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 5000);
+        }
+
+        // ===== Trigger AI Analysis =====
+        async function triggerAiAnalysis(customerId) {
+            const btn = document.getElementById(`btn-analyze-${customerId}`);
+            const originalHtml = btn.innerHTML;
+
+            btn.disabled = true;
+            btn.innerHTML = `<svg class="animate-spin h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg><span class="ml-1.5">Đang phân tích...</span>`;
+
+            try {
+                const response = await fetch(`/api/customers/${customerId}/analyze/`, { method: 'POST' });
+                const resData = await response.json();
+
+                if (resData.success && resData.data) {
+                    const d = resData.data;
+
+                    // Cập nhật customersData cache
+                    if (customersData[customerId]) {
+                        Object.assign(customersData[customerId], {
+                            ai_lead_score: d.ai_lead_score,
+                            ai_sentiment: d.ai_sentiment,
+                            ai_churn_risk: d.ai_churn_risk,
+                            ai_summary: d.ai_summary,
+                            ai_recommended_action: d.ai_recommended_action,
+                            ai_demographics: d.ai_demographics,
+                            ai_rfm_analysis: d.ai_rfm_analysis,
+                            ai_engagement: d.ai_engagement,
+                            ai_predictive: d.ai_predictive,
+                        });
+                    }
+
+                    // Cập nhật bảng: Điểm AI
+                    const scoreEl = document.getElementById(`score-${customerId}`);
+                    if (scoreEl) {
+                        scoreEl.innerText = d.ai_lead_score;
+                        scoreEl.className = 'font-extrabold text-sm ' + (d.ai_lead_score >= 75 ? 'text-emerald-400' : d.ai_lead_score >= 40 ? 'text-amber-400' : 'text-rose-400');
+                    }
+
+                    // Cập nhật bảng: Sentiment
+                    const sentEl = document.getElementById(`sentiment-badge-${customerId}`);
+                    if (sentEl) {
+                        const sl = (d.ai_sentiment || '').toLowerCase();
+                        sentEl.innerHTML = sl === 'positive' ? `<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">● Positive</span>` :
+                                           sl === 'negative' ? `<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/30">● Negative</span>` :
+                                           `<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-500/20 text-slate-300 border border-slate-600/30">● Neutral</span>`;
+                    }
+
+                    // Cập nhật bảng: Churn Risk
+                    const churnEl = document.getElementById(`churn-badge-${customerId}`);
+                    if (churnEl) {
+                        const cl = (d.ai_churn_risk || '').toLowerCase();
+                        churnEl.innerHTML = cl === 'high' ? `<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/30">High</span>` :
+                                            cl === 'medium' ? `<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/30">Medium</span>` :
+                                            `<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">Low</span>`;
+                    }
+
+                    // Cập nhật bảng: Tóm tắt
+                    const sumEl = document.getElementById(`summary-${customerId}`);
+                    if (sumEl && d.ai_summary) sumEl.innerText = d.ai_summary;
+
+                    const actEl = document.getElementById(`action-${customerId}`);
+                    if (actEl && d.ai_recommended_action) {
+                        actEl.innerText = `👉 ${d.ai_recommended_action}`;
+                        actEl.classList.remove('hidden');
+                    }
+
+                    showToast('Phân tích thành công!', `${d.name} · Điểm: ${d.ai_lead_score} · ${d.ai_churn_risk} risk`, true);
+
+                    // Tự động mở modal hiển thị kết quả chi tiết
+                    openDetailModal(customerId);
+                } else {
+                    showToast('Phân tích thất bại', resData.message || 'Lỗi khi gọi AI service', false);
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('Lỗi kết nối', 'Không thể kết nối tới máy chủ.', false);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+            }
+        }
+    </script>
+</body>
+</html>

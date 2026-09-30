@@ -1,0 +1,6 @@
+Django>=5.0,<6.0
+wagtail>=6.0,<7.0
+python-dotenv>=1.0.0
+google-genai>=0.1.1
+requests>=2.31.0
+django-cors-headers>=4.3.0
